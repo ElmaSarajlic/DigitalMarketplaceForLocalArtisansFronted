@@ -5,6 +5,7 @@ import useUpdateArtwork from '../../hooks/useUpdateArtwork';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCategories } from '../../hooks';
 import useArtwork from '../../hooks/useArtworkId';
+import { SelectChangeEvent } from '@mui/material/Select'; // Import SelectChangeEvent
 
 const UpdateArtwork: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,14 +21,25 @@ const UpdateArtwork: React.FC = () => {
     }
   }, [existingArtwork]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (artwork) {
       setArtwork({
         ...artwork,
-        [name as string]: value
+        [name as keyof Artwork]: value
       });
     }
+  };
+  
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { value } = e.target;
+    setArtwork((prevArtwork) => {
+      if (!prevArtwork) return prevArtwork;
+      return {
+        ...prevArtwork,
+        category: value,
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -117,7 +129,7 @@ const UpdateArtwork: React.FC = () => {
             <Select
               name="category"
               value={artwork.category || ''}
-              onChange={handleChange}
+              onChange={handleSelectChange}
             >
               {categories?.map((category: Category) => (
                 <MenuItem key={category.name} value={category.name}>
