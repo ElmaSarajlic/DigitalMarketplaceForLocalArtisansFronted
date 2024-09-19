@@ -20,6 +20,7 @@ import {
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import useMessages from '../../hooks/useMessages';
+import { SelectChangeEvent } from '@mui/material/Select'; 
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -60,7 +61,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const StyledFormControl = styled(FormControl)(({ theme }) => ({
+const StyledFormControl = styled(FormControl)(({ }) => ({
   m: 1,
   minWidth: 150,
   '& .MuiInputLabel-root': {
@@ -88,17 +89,10 @@ const Notifications: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<string>('desc');
   const { data: messages } = useMessages();
 
-  const handleSortOrderChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleSortOrderChange = (event: SelectChangeEvent<string>) => {
     setSortOrder(event.target.value as string);
   };
 
-  const sortMessagesByDate = (messages: any[], order: string) => {
-    return messages.sort((a, b) => {
-      const dateA = new Date(a.creationDate).getTime();
-      const dateB = new Date(b.creationDate).getTime();
-      return order === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-  };
 
   const filteredNotifications = messages
     ?.filter((messages) =>
@@ -131,7 +125,7 @@ const Notifications: React.FC = () => {
             <InputLabel>Sort by</InputLabel>
             <Select
               value={sortOrder}
-              onChange={handleSortOrderChange}
+              onChange={handleSortOrderChange} 
               label="Sort by"
             >
               <MenuItem value="asc">Date (Oldest First)</MenuItem>
@@ -147,7 +141,7 @@ const Notifications: React.FC = () => {
               <React.Fragment key={messages.id}>
                 <ListItem>
                   <ListItemAvatar>
-                    <Avatar>{/*avatar*/}</Avatar>
+                    <Avatar>{/* avatar*/}</Avatar>
                   </ListItemAvatar>
                   <ListItemText
                     primary={messages.title}

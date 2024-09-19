@@ -15,7 +15,6 @@ import {
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { FavoriteBorder } from '@mui/icons-material'; 
-
 import { useSelector } from 'react-redux';
 import useArtwork from '../../hooks/useArtworkId';
 import useAddToCart from '../../hooks/useAddToCart';
@@ -23,7 +22,7 @@ import useAddToWishlist from '../../hooks/useAddToWishlist';
 import { RootState } from '../../store';
 import CommentCard from '../commentCard';
 import useAddComment from '../../hooks/useAddComment';
-
+import { v4 as uuidv4 } from 'uuid';  // Import UUID generator
 
 const ProductInfoPage: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.userId);
@@ -38,7 +37,6 @@ const ProductInfoPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const { mutate: addComment } = useAddComment();
 
-
   const handleAddToCart = () => {
     if (!userId || !artwork?.id) {
       console.error('User ID or Artwork ID is missing');
@@ -46,7 +44,7 @@ const ProductInfoPage: React.FC = () => {
     }
 
     addToCart(
-      {  userId, artworkId: artwork.id },
+      { userId, artworkId: artwork.id },
       {
         onSuccess: () => {
           console.log(`Artwork with ID ${artwork.id} was added to cart.`);
@@ -57,6 +55,7 @@ const ProductInfoPage: React.FC = () => {
       }
     );
   };
+
   const handleAddToWishlist = () => {
     if (!userId || !artwork?.id) {
       console.error('User ID or Artwork ID is missing');
@@ -77,34 +76,51 @@ const ProductInfoPage: React.FC = () => {
   };
   
   const handleCommentSubmit = async () => {
-    if (!comment.trim()) return; 
+    if (!comment.trim()) return; // Do not submit if the comment is empty
     setIsSubmitting(true);
 
+    // Ensure userId and artworkId are defined
+    if (!userId) {
+      console.error('User ID is undefined or null');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!artwork?.id) {
+      console.error('Artwork ID is undefined or null');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Construct the new comment object, including all required fields
     const newComment = {
-        text: comment,
-        creationDate: new Date().toISOString() 
+      id: uuidv4(),  // Generate a unique ID for the comment
+      userId: userId,
+      artworkId: artwork.id,
+      text: comment,
+      creationDate: new Date(),  // Pass a Date object, not a string
     };
 
-    addComment({
+    addComment(
+      {
         userId: userId,
-        artworkId: artwork?.id,
-        comment: newComment
-    }, {
+        artworkId: artwork.id,
+        comment: newComment, // Pass the fully constructed comment object
+      },
+      {
         onSuccess: () => {
-            setComment(''); 
-            console.log('Comment added successfully');
+          setComment(''); // Clear the comment input field
+          console.log('Comment added successfully');
         },
         onError: (error) => {
-            console.error('Error while adding comment:', error.message);
+          console.error('Error while adding comment:', error.message);
         },
         onSettled: () => {
-            setIsSubmitting(false); 
-        }
-    });
-};
-
-  
-
+          setIsSubmitting(false); // Stop the submitting state
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return <CircularProgress />;
@@ -169,13 +185,13 @@ const ProductInfoPage: React.FC = () => {
                   >
                     <FavoriteBorder />
                   </IconButton>
-                  </Box>
+                </Box>
               )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-      <Box sx={{ mt: 4,  p: 2 }}>
+      <Box sx={{ mt: 4, p: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>Comments</Typography>
         <TextField
           fullWidth
@@ -197,15 +213,15 @@ const ProductInfoPage: React.FC = () => {
           Add Comment
         </Button>
         <List>
-                {artwork.comments.map((comment) => (
-                  <ListItem key={comment.id}>
-                    <CommentCard comment={comment} />
-                  </ListItem>
-                ))}
-              </List>
+          {artwork.comments.map((comment) => (
+            <ListItem key={comment.id}>
+              <CommentCard comment={comment} />
+            </ListItem>
+          ))}
+        </List>
       </Box>
     </Box>
   );
-}
+};
 
 export default ProductInfoPage;
